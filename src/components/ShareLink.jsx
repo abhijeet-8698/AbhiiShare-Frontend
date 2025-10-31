@@ -22,20 +22,20 @@ const ShareLink = ({ link }) => {
   return (
     <div className="mt-2 flex flex-col items-start">
       <p className="text-gray-500 text-sm mb-1">Shareable link:</p>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 w-full">
         <a
           href={link}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-blue-600 underline hover:text-blue-800 break-words"
+          className="text-blue-600 underline hover:text-blue-800 break-words truncate max-w-full"
         >
           {link}
         </a>
         <button
           onClick={handleCopy}
-          className={`text-white px-2 py-1 rounded text-xs ${
-            copied ? "bg-green-500" : "bg-blue-500"
-          } hover:bg-blue-600 transition-colors`}
+          className={`text-white px-2 py-1 rounded text-xs transition-colors ${
+            copied ? "bg-green-500 hover:bg-green-600" : "bg-blue-500 hover:bg-blue-600"
+          }`}
         >
           {copied ? "Copied!" : "Copy"}
         </button>

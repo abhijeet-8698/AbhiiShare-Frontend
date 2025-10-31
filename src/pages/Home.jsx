@@ -4,72 +4,109 @@ import ProgressBar from "../components/ProgressBar";
 import ShareLink from "../components/ShareLink";
 import { uploadFiles } from "../utils/api";
 
-/**
- * Home Component
- * Handles multiple file uploads with individual progress bars and shareable links.
- */
 export default function Home() {
-  const [files, setFiles] = useState([]); // array of selected File objects
-  const [progressMap, setProgressMap] = useState({}); // { filename: progress }
-  const [linkMap, setLinkMap] = useState({}); // { filename: shareable URL }
+  const [files, setFiles] = useState([]);
+  const [progressMap, setProgressMap] = useState({});
+  const [linkMap, setLinkMap] = useState({});
 
-  // Handle file upload
-  const handleUpload = async () => {
-    if (files.length === 0) return alert("Please select files to upload");
+  const [toEmail, setToEmail] = useState("");
+  const [fromEmail, setFromEmail] = useState("");
+  const [title, setTitle] = useState("");
+
+  const handleTransfer = async () => {
+    if (files.length === 0) return alert("Please select files/folder");
+    if (!toEmail || !fromEmail) return alert("Please enter both emails");
 
     try {
-      // Initialize progress for all files
       const initialProgress = {};
       files.forEach((file) => (initialProgress[file.name] = 0));
       setProgressMap(initialProgress);
 
-      // Upload files using API utility
       const urls = await uploadFiles(files, (fileName, prog) => {
         setProgressMap((prev) => ({ ...prev, [fileName]: prog }));
       });
 
-      // Map URLs to filenames
       const newLinkMap = {};
       files.forEach((file, i) => {
         newLinkMap[file.name] = urls[i];
-        setProgressMap((prev) => ({ ...prev, [file.name]: 100 })); // mark done
+        setProgressMap((prev) => ({ ...prev, [file.name]: 100 }));
       });
       setLinkMap(newLinkMap);
+
+      alert("Files uploaded! Shareable links generated.");
+      // TODO: integrate email sending via backend
     } catch (err) {
-      console.error("Upload failed:", err);
-      alert("File upload failed. Please try again.");
+      console.error(err);
+      alert("File upload failed.");
     }
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 p-4">
-      <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md text-center">
-        <h1 className="text-2xl font-bold text-gray-700 mb-4">AbhiiShare</h1>
+    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 p-4">
+      <div className="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-lg text-center">
+        <h1 className="text-3xl font-bold text-gray-700 mb-4">AbhiiShare</h1>
         <p className="text-gray-500 mb-6">
-          Upload multiple files quickly and get shareable links.
+          Upload files/folders and share them via email.
         </p>
 
-        {/* File selection */}
-        <UploadBox setFile={setFiles} multiple />
+        {/* Upload box */}
+        <UploadBox setFile={setFiles} multiple folder />
 
-        {/* Upload button */}
+        {/* Email & title fields */}
+        <div className="flex flex-col gap-3 mb-4">
+          <input
+            type="email"
+            placeholder="Recipient Email (To)"
+            value={toEmail}
+            onChange={(e) => setToEmail(e.target.value)}
+            className="border border-gray-300 rounded p-2 focus:outline-none focus:ring-2 focus:ring-blue-300"
+          />
+          <input
+            type="email"
+            placeholder="Your Email"
+            value={fromEmail}
+            onChange={(e) => setFromEmail(e.target.value)}
+            className="border border-gray-300 rounded p-2 focus:outline-none focus:ring-2 focus:ring-blue-300"
+          />
+          <input
+            type="text"
+            placeholder="Title (optional)"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className="border border-gray-300 rounded p-2 focus:outline-none focus:ring-2 focus:ring-blue-300"
+          />
+        </div>
+
+        {/* Transfer button */}
         <button
-          onClick={handleUpload}
-          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 w-full mb-4"
+          onClick={handleTransfer}
+          className="bg-blue-500 text-white px-6 py-2 rounded-full hover:bg-blue-600 transition-colors w-full mb-4"
         >
-          Upload Files
+          Transfer
         </button>
 
-        {/* Scrollable container for multiple files */}
-        <div className="mt-4 max-h-96 overflow-y-auto w-full">
+        {/* Scrollable file list */}
+        <div className="max-h-96 overflow-y-auto mt-4 text-left">
           {files.map((file) => (
-            <div key={file.name} className="mb-6 text-left relative">
-              <p className="text-gray-600 text-sm mb-1">{file.name}</p>
-              <ProgressBar
-                progress={progressMap[file.name] || 0}
-                fileName={file.name}
-              />
-              <ShareLink link={linkMap[file.name]} />
+            <div key={file.name} className="mb-6 flex items-center gap-3">
+              {/* Thumbnail for images */}
+              {file.type.startsWith("image/") ? (
+                <img
+                  src={URL.createObjectURL(file)}
+                  alt={file.name}
+                  className="w-12 h-12 object-cover rounded"
+                />
+              ) : (
+                <div className="w-12 h-12 flex items-center justify-center bg-gray-200 rounded text-sm text-gray-600">
+                  {file.type.split("/")[0]}
+                </div>
+              )}
+
+              <div className="flex-1">
+                <p className="text-gray-700 text-sm truncate">{file.name}</p>
+                <ProgressBar progress={progressMap[file.name] || 0} fileName={file.name} />
+                <ShareLink link={linkMap[file.name]} />
+              </div>
             </div>
           ))}
         </div>

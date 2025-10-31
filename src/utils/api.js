@@ -1,6 +1,6 @@
 /**
  * api.js
- * Handles API requests for AbhiiShare app (file uploads, etc.)
+ * Handles API requests for AbhiiShare app (file uploads to AWS S3 via backend)
  */
 
 const API_URL = "http://localhost:5000"; // Backend server URL
@@ -14,31 +14,37 @@ const API_URL = "http://localhost:5000"; // Backend server URL
 export const uploadFiles = async (files, onProgress) => {
   if (!files || files.length === 0) return [];
 
-  const formData = new FormData();
-  files.forEach((file) => formData.append("files", file));
+  const uploadedUrls = [];
 
-  try {
-    const response = await fetch(`${API_URL}/upload`, {
-      method: "POST",
-      body: formData,
-    });
+  // Upload each file separately to track progress
+  for (const file of files) {
+    const formData = new FormData();
+    formData.append("file", file);
 
-    if (!response.ok) {
-      throw new Error("Upload failed");
-    }
-
-    const data = await response.json();
-
-    // Optionally report progress
-    if (onProgress) {
-      files.forEach((file, i) => {
-        onProgress(file.name, 100); // all done after backend responds
+    try {
+      const response = await fetch(`${API_URL}/upload`, {
+        method: "POST",
+        body: formData,
       });
-    }
 
-    return data.urls; // array of pre-signed URLs
-  } catch (err) {
-    console.error("API upload error:", err);
-    throw err;
+      if (!response.ok) {
+        throw new Error(`Upload failed for ${file.name}`);
+      }
+
+      const data = await response.json();
+
+      // data.url should be the pre-signed S3 URL for this file
+      uploadedUrls.push(data.url);
+
+      if (onProgress) {
+        onProgress(file.name, 100); // mark as complete for this file
+      }
+    } catch (err) {
+      console.error(`API upload error for ${file.name}:`, err);
+      if (onProgress) onProgress(file.name, 0); // reset progress on error
+      throw err;
+    }
   }
+
+  return uploadedUrls;
 };
