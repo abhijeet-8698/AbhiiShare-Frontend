@@ -2,10 +2,7 @@ import React, { useRef, useState } from "react";
 
 /**
  * UploadBox Component
- * Drag & drop or click to select multiple files/folders
- *
- * Props:
- * - setFile: function to pass files to parent
+ * Handles drag & drop or click to select multiple files/folders.
  */
 export default function UploadBox({ setFile }) {
   const fileInputRef = useRef();
@@ -14,7 +11,7 @@ export default function UploadBox({ setFile }) {
   const [selectedCount, setSelectedCount] = useState(0);
 
   const handleFiles = (filesList) => {
-    const arr = Array.from(filesList); // convert FileList to array
+    const arr = Array.from(filesList);
     setFile(arr);
     setSelectedCount(arr.length);
     setIsDragging(false);
@@ -34,28 +31,27 @@ export default function UploadBox({ setFile }) {
           setIsDragging(true);
         }}
         onDragLeave={() => setIsDragging(false)}
-        className={`border-2 border-dashed rounded-xl p-6 cursor-pointer transition-colors text-center mb-4
-          ${isDragging ? "border-blue-500 bg-blue-50" : "border-gray-300 bg-white"}
-        `}
+        className={`border-2 border-dashed rounded-xl p-5 cursor-pointer transition-colors text-center
+          ${isDragging ? "border-blue-500 bg-blue-50" : "border-gray-300 bg-white"}`}
       >
-        {selectedCount > 0 ? (
-          <p className="text-gray-700 font-medium">{selectedCount} file(s) selected</p>
-        ) : (
-          <p className="text-gray-500 mb-2">Drag & Drop files here or click buttons below</p>
-        )}
+        <p className="text-gray-500">
+          {selectedCount > 0
+            ? `${selectedCount} file(s) selected`
+            : "Drag & Drop files here or click below"}
+        </p>
       </div>
 
       {/* Buttons */}
-      <div className="flex gap-4 justify-center">
+      <div className="flex gap-4 justify-center mt-4">
         <button
           onClick={() => fileInputRef.current.click()}
-          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors"
+          className="bg-blue-500 text-white px-5 py-2 rounded-lg hover:bg-blue-600 transition"
         >
           Add Files
         </button>
         <button
           onClick={() => folderInputRef.current.click()}
-          className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-colors"
+          className="bg-green-500 text-white px-5 py-2 rounded-lg hover:bg-green-600 transition"
         >
           Add Folder
         </button>

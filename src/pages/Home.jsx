@@ -3,19 +3,21 @@ import UploadBox from "../components/UploadBox";
 import ProgressBar from "../components/ProgressBar";
 import ShareLink from "../components/ShareLink";
 import { uploadFiles } from "../utils/api";
+import toast from "react-hot-toast";
 
 export default function Home() {
   const [files, setFiles] = useState([]);
   const [progressMap, setProgressMap] = useState({});
   const [linkMap, setLinkMap] = useState({});
-
   const [toEmail, setToEmail] = useState("");
   const [fromEmail, setFromEmail] = useState("");
   const [title, setTitle] = useState("");
 
   const handleTransfer = async () => {
-    if (files.length === 0) return alert("Please select files/folder");
-    if (!toEmail || !fromEmail) return alert("Please enter both emails");
+    if (files.length === 0)
+      return toast.error("📁 Please select files or a folder!", { duration: 3000 });
+    if (!toEmail || !fromEmail)
+      return toast.error("📧 Please enter both emails!", { duration: 3000 });
 
     try {
       const initialProgress = {};
@@ -33,26 +35,23 @@ export default function Home() {
       });
       setLinkMap(newLinkMap);
 
-      alert("Files uploaded! Shareable links generated.");
-      // TODO: integrate email sending via backend
+      toast.success("✅ Files uploaded successfully!");
     } catch (err) {
       console.error(err);
-      alert("File upload failed.");
+      toast.error("❌ File upload failed.");
     }
   };
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 p-4">
-      <div className="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-lg text-center">
-        <h1 className="text-3xl font-bold text-gray-700 mb-4">AbhiiShare</h1>
+      <div className="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-lg text-center flex flex-col max-h-[90vh]">
+        <h1 className="text-3xl font-bold text-gray-700 mb-2">AbhiiShare</h1>
         <p className="text-gray-500 mb-6">
-          Upload files/folders and share them via email.
+          Upload files/folders and share them via AbhiiShare.
         </p>
 
-        {/* Upload box */}
         <UploadBox setFile={setFiles} multiple folder />
 
-        {/* Email & title fields */}
         <div className="flex flex-col gap-3 mb-4">
           <input
             type="email"
@@ -77,19 +76,17 @@ export default function Home() {
           />
         </div>
 
-        {/* Transfer button */}
         <button
           onClick={handleTransfer}
-          className="bg-blue-500 text-white px-6 py-2 rounded-full hover:bg-blue-600 transition-colors w-full mb-4"
+          className="bg-blue-500 text-white px-6 py-2 rounded-full hover:bg-blue-600 transition-colors w-full mb-4 border border-black"
         >
           Transfer
         </button>
 
-        {/* Scrollable file list */}
-        <div className="max-h-96 overflow-y-auto mt-4 text-left">
+        {/* Scrollable area with fixed height */}
+        <div className="flex-1 overflow-y-auto bg-gray-50 rounded-xl shadow-inner p-3 text-left scrollbar-thin scrollbar-thumb-blue-300 scrollbar-track-gray-100">
           {files.map((file) => (
-            <div key={file.name} className="mb-6 flex items-center gap-3">
-              {/* Thumbnail for images */}
+            <div key={file.name} className="mb-4 flex items-center gap-3">
               {file.type.startsWith("image/") ? (
                 <img
                   src={URL.createObjectURL(file)}
